@@ -6,6 +6,7 @@ namespace MyProject.Interfaces
     {
         Task<string> RegisterUser(RegisterDto request);
         Task<string> LoginUser(LoginDto request);
+        Task<string> FindById(int id);
 
     }
 }

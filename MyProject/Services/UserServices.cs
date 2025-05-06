@@ -1,13 +1,16 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyProject.Context;
 using MyProject.Interfaces;
 using MyProject.Models.User;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 namespace MyProject.Services
+
 {
     public class UserServices : IUserService
     {
@@ -20,19 +23,18 @@ namespace MyProject.Services
         {
             try
             {
-                if (await _context.users.AnyAsync(p => p.Email == request.Email))
+                var reg = await _context.users.FirstOrDefaultAsync(p => p.Email == request.Email);
+                if(reg != null)
                 {
-                    return null;
-
+                    return "existing user";
                 }
                 var user = new User();
-                user.UserName = request.UserName;
+                user.UserName = request.Username;
+                user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
                 user.Email = request.Email;
-                user.Password = request.Password;
-                await _context.users.AddAsync(user);
+                 _context.users.Add(user);
                 await _context.SaveChangesAsync();
-                return "user registration successfull";
-
+                return "User Registered";
 
 
 
@@ -43,6 +45,7 @@ namespace MyProject.Services
             }
 
         }
+        
 
         public async Task<string> LoginUser(LoginDto request)
         {
@@ -54,6 +57,7 @@ namespace MyProject.Services
             if (!BCrypt.Net.BCrypt.Verify(request.Password, logg.Password)) return null;
             var token = CreateToken(logg);
             return token;
+            
         }
         private string CreateToken(User user)
         {
@@ -72,6 +76,18 @@ namespace MyProject.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<string> FindById(int id)
+        {
+
+            var Byid = await _context.users.FindAsync(id);
+            if (Byid == null)
+            {
+                return null;
+            }
+            return Byid.UserName; 
+           
         }
     }
 }
