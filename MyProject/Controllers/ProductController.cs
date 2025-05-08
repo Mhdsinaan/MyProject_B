@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using MyProject.Interfaces;
+using MyProject.Models.Product;
 
 namespace MyProject.Controllers
 {
@@ -15,15 +17,46 @@ namespace MyProject.Controllers
         }
 
         [HttpGet("GetALL")]
-        public IActionResult Index()
+        public async Task<IActionResult> GetAll()
         {
-            var AllProducts = _productService.GetAllProducts();
+            var AllProducts = await _productService.GetAllProducts();
             if (AllProducts == null)
             {
                 return NotFound();
             }
             return Ok(AllProducts);
 
+        }
+        [HttpGet]
+        public async Task<IActionResult>ByID(int id)
+        {
+            var user = await _productService.GetProductById(id);
+            if (user == null)
+            {
+                return NotFound("No User found");
+
+            }
+            return Ok(user);
+        }
+        [HttpPost("AddProduct")]
+        public async Task<IActionResult> AddProduct([FromBody] ProductDto request)
+        {
+            var result = await _productService.AddProduct(request);
+            if (result == null)
+            {
+                return BadRequest("Product not added");
+            }
+            return Ok(result);
+        }
+        [HttpGet("ProductByCategory")]
+        public async Task<IActionResult> GetByCategory(string category)
+        {
+            var Products = await _productService.ProductByCategory(category);
+            if (Products == null)
+            {
+                return NotFound();
+            }
+            return Ok(Products);
         }
     }
 }

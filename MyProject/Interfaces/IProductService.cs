@@ -1,9 +1,13 @@
-﻿namespace MyProject.Interfaces
+﻿using MyProject.Models.Product;
+
+namespace MyProject.Interfaces
 {
     public interface IProductService
     {
-        Task <string>GetAllProducts();
-        Task<string> GetProductById(int id);
-        Task<string> ProductByCategory(string category);
+        Task<List<Product>> GetAllProducts();
+        Task<ProductDto> GetProductById(int id);
+        Task<List<ProductDto>> ProductByCategory(string category);
+ 
+        Task<string> AddProduct(ProductDto request);
     }
 }

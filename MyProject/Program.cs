@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MyProject.Context;
 using MyProject.Interfaces;
 using MyProject.Services;
+using MyProject.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
+// ? Register AutoMapper
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // ? Register Authentication and JWT
 builder.Services.AddAuthentication(options =>
 {
