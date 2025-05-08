@@ -1,15 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using MyProject.Models.CartModel;
+﻿using Microsoft.AspNetCore.Mvc;
 using MyProject.Interfaces;
 using MyProject.Models.Cart;
 using MyProject.Models.CartModel;
 
 namespace MyProject.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    [Authorize] 
+    [Route("api/[controller]")]
     public class CartController : ControllerBase
     {
         private readonly ICartproducts _cartService;
@@ -23,31 +20,56 @@ namespace MyProject.Controllers
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
             var result = await _cartService.AddToCart(cart);
-            if (result == null) return BadRequest("User not authorized or product not found");
             return Ok(result);
         }
 
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<CartItems>>> GetCartItems(int userId)
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetCartItems(int userId)
         {
-            var cartItems = await _cartService.GetCartItems(userId);
-            return Ok(cartItems);
+            var items = await _cartService.GetCartItems(userId);
+            return Ok(items);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveFromCart(int id)
         {
-            var removedItem = await _cartService.RemoveFromCart(id);
-            if (removedItem == null) return NotFound("Item not found");
-            return Ok(removedItem);
+            try
+            {
+                var removedItem = await _cartService.RemoveFromCart(id);
+                return Ok(removedItem);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDtos cart, [FromQuery] int userId)
+        [HttpPut("increment/{id}")]
+        public async Task<IActionResult> IncrementQuantity(int id, [FromBody] CartDtos cart, [FromQuery] int userId)
         {
-            var updated = await _cartService.UpdateCart(id, cart, userId);
-            if (updated == null) return NotFound("Item not found or unauthorized");
-            return Ok(updated);
+            try
+            {
+                var updatedItem = await _cartService.Increment(id, cart, userId);
+                return Ok(updatedItem);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [HttpPut("decrement/{id}")]
+        public async Task<IActionResult> DecrementQuantity(int id, [FromQuery] int userId)
+        {
+            try
+            {
+                var updatedItem = await _cartService.Decrement(id, userId);
+                return Ok(updatedItem);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

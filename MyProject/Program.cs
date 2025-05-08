@@ -15,6 +15,7 @@ builder.Services.AddDbContext<MyContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartproducts, CartService>();
 // Read JWT settings
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
