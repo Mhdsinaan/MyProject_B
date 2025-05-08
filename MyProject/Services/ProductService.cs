@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using MyProject.Context;
 using MyProject.Interfaces;
 using MyProject.Mapping;
-using MyProject.Models.Product;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+
+using MyProject.Models.ProductModel;
 
 namespace MyProject.Services
 {
@@ -19,11 +20,11 @@ namespace MyProject.Services
             _mapping = mapping;
         }
         [HttpGet("GetAll")]
-        public async Task<List<Product>> GetAllProducts()
+        public async Task<List<ProductDto>> GetAllProducts()
         {
             var allProducts = await _context.products.ToListAsync();
-            return allProducts;
-        
+            return _mapping.Map<List<ProductDto>>(allProducts);
+
         }
 
        
@@ -37,16 +38,15 @@ namespace MyProject.Services
             return _mapping.Map<ProductDto>(BYid);
         }
 
-
         public async Task<List<ProductDto>> ProductByCategory(string category)
         {
-            var categoryProducts = await _context.products
-                .Where(p => p.Category == category)
-                .ToListAsync();
-
+            var categoryProducts = await  _context.products.Where(p => p.Category == category).ToListAsync();
+            if (categoryProducts == null)
+            {
+                return null;
+            }
             return _mapping.Map<List<ProductDto>>(categoryProducts);
         }
-
         public async Task<string> AddProduct(ProductDto request)
         {
             var product = _mapping.Map<Product>(request); 

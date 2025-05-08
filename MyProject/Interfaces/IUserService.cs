@@ -1,4 +1,5 @@
 ﻿using MyProject.Models.User;
+using MyProject.Models.UserModel;
 
 namespace MyProject.Interfaces
 {
@@ -7,6 +8,6 @@ namespace MyProject.Interfaces
         Task<string> RegisterUser(RegisterDto request);
         Task<string> LoginUser(LoginDto request);
         Task<string> FindById(int id);
-
+       
     }
 }

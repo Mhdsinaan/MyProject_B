@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MyProject.Context;
 using MyProject.Interfaces;
 using MyProject.Models.User;
+using MyProject.Models.UserModel;
 
 namespace MyProject.Controllers
 {
@@ -29,18 +30,19 @@ namespace MyProject.Controllers
             return Ok(reg);
 
         }
-        [HttpPost]
-        public async Task<IActionResult> Login(LoginDto request)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            var logg = await _userService.LoginUser(request);
-            if (logg == null)
+            var user = await _userService.LoginUser(request);
+
+            if (user == null)
             {
-                return NotFound("no matched data");
-
+                return NotFound("No matching user found.");
             }
-            return Ok(logg);
 
+            return Ok(user);
         }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByID(int id)
         {

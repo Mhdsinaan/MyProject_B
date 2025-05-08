@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyProject.Models.Product;
+using MyProject.Models.Cart;
+
+using MyProject.Models.ProductModel;
 using MyProject.Models.User;
+using MyProject.Models.UserModel;
 namespace MyProject.Context
 {
     public class MyContext:DbContext
@@ -8,8 +11,9 @@ namespace MyProject.Context
 
     {
         public MyContext(DbContextOptions<MyContext>options):base(options) { }
-        public DbSet<User>users { get; set; }   
+        public DbSet<Users>users { get; set; }   
         public DbSet<Product> products { get; set; }
+        public DbSet<CartItems> CartProducts { get; set; }
 
     }
 }

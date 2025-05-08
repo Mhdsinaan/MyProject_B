@@ -7,8 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyProject.Context;
 using MyProject.Interfaces;
-using MyProject.Models.User;
 using Microsoft.AspNetCore.Mvc;
+using MyProject.Models.User;
+using MyProject.Models.User;
+using MyProject.Models.UserModel;
 namespace MyProject.Services
 
 {
@@ -28,7 +30,7 @@ namespace MyProject.Services
                 {
                     return "existing user";
                 }
-                var user = new User();
+                var user = new Users();
                 user.UserName = request.Username;
                 user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
                 user.Email = request.Email;
@@ -59,7 +61,7 @@ namespace MyProject.Services
             return token;
             
         }
-        private string CreateToken(User user)
+        private string CreateToken(Users user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("supersecretkeyofbasimhilalisfamousforeverythingthattoughtinthiseraoftechnologyandresearchokthenbye");

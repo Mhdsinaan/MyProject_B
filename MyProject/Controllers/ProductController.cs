@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Interfaces;
-using MyProject.Models.Product;
+using MyProject.Models.ProductModel;
+
 
 namespace MyProject.Controllers
 {

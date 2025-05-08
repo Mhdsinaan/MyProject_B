@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MyProject.Models.Product
+namespace MyProject.Models.ProductModel
 {
     public class Product
     {
@@ -33,5 +33,9 @@ namespace MyProject.Models.Product
 
         [Range(0, int.MaxValue, ErrorMessage = "Reviews must be a non-negative number")]
         public int Reviews { get; set; }
+
+
+
+       
     }
 }

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
-using MyProject.Models.Product;
+
+using MyProject.Models.ProductModel;
 using MyProject.Models.User;
+using MyProject.Models.UserModel;
 
 namespace MyProject.Mapping
 {
@@ -8,8 +10,8 @@ namespace MyProject.Mapping
     {
         public MApping()
         {
-            CreateMap<User, LoginDto>().ReverseMap();
-            CreateMap<User, RegisterDto>().ReverseMap();
+            CreateMap<Users, LoginDto>().ReverseMap();
+            CreateMap<Users, RegisterDto>().ReverseMap();
             CreateMap <Product, ProductDto>().ReverseMap();
         }
     }
