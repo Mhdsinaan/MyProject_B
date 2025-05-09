@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Context;
 using MyProject.Interfaces;
@@ -10,88 +11,112 @@ namespace MyProject.Services
     public class CartService : ICartproducts
     {
         private readonly MyContext _context;
-        private readonly IMapper _mapper;
-        public CartService(MyContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _IHttpContextAccessor;
+        public CartService(MyContext context, IHttpContextAccessor iHttpContextAccessor)
         {
             _context = context;
-            _mapper = mapper;
+            _IHttpContextAccessor = iHttpContextAccessor;
+
         }
+
         public async Task<string> AddToCart(CartDtos cart)
         {
             try
             {
-                var cartProduct = _mapper.Map<CartItems>(cart);
-                await _context.CartProducts.AddAsync(cartProduct);
-                return "Item added to the cart successfully!";
-            } catch (Exception ex)
-            {
-                return $"Error adding item to cart: {ex.Message}";
+                var userId = _IHttpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId is null)
+                {
+                    return null;
+                }
+                int userdata = int.Parse(userId);
 
-            }
-        }
+                var product = await _context.products.FindAsync(cart.ProductId);
+                if (product == null)
+                {
+                    return null;
+                }
+                var Existingitem = _context.products.FirstOrDefault(p => p.Id == cart.ProductId && p.Id == cart.ProductId);
+                if (Existingitem != null)
+                {
 
-        public async Task<IEnumerable<CartItems>> GetCartItems(int id)
-        {
-            var cartItems = await _context.CartProducts
-                .Where(c => c.UserId == id).ToListAsync();
-            return _mapper.Map<IEnumerable<CartItems>>(cartItems);
+                    Existingitem.Quantity += cart.Quantity;
+                    _context.products.Update(Existingitem);
 
-
-        }
-
-        public async Task<CartItems> RemoveFromCart(int id)
-        {
-            var remove = await _context.CartProducts.FindAsync(id);
-            if (remove == null)
-            {
-                throw new Exception("Item not found in the cart");
-            }
-            _context.CartProducts.Remove(remove);
-            await _context.SaveChangesAsync();
-            return _mapper.Map<CartItems>(remove);
-        }
-
-        public async Task<CartItems> Increment(int id, CartDtos cart, int userId)
-        {
-
-            var cartProduct = await _context.CartProducts
-                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
-
-            if (cartProduct == null)
-            {
-                throw new Exception("Item not found in the cart");
-            }
-            cartProduct.Quantity += 1;
-
-            await _context.SaveChangesAsync();
-            return _mapper.Map<CartItems>(cartProduct);
-
-        }
-        public async Task<CartItems> Decrement(int id, int userId)
-        {
-           
-            var cartProduct = await _context.CartProducts
-                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
-
-            if (cartProduct == null)
-            {
-                throw new Exception("Item not found in the cart");
-            }
-
-           
-            if (cartProduct.Quantity > 1)
-            {
-                cartProduct.Quantity -= 1;
+                }
+                else
+                {
+                    var cartitem = new CartItems
+                    {
+                        UserId = userdata,
+                        ProductId = cart.ProductId,
+                        Quantity = cart.Quantity
+                    };
+                    _context.CartProducts.Add(cartitem);
+                }
                 await _context.SaveChangesAsync();
-            }
-            else
+                return "Product added to cart successfully";
+            } catch(Exception ex)
             {
-                throw new Exception("Quantity cannot be less than 1. You can remove the item instead.");
-            }
 
-            
-            return _mapper.Map<CartItems>(cartProduct);
+                throw new  ("An error occurred while adding the product to the cart", ex);
+            }
         }
 
+        public async Task<IEnumerable<CartItems>> GetCartItems(Users userId)
+        {
+            try
+            {
+                var cartitem = await _context.CartProducts.Include(p => p.Product).Where(p => p.UserId == userId.Id).ToListAsync();
+                if (cartitem == null)
+                {
+                    return null;
+                }
+                return cartitem;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while retrieving the cart items", ex);
+            }
+        }
+
+        public async Task<CartItems> RemoveFromCart(int id, Users userid)
+        {
+            try
+            {
+                var cartitem = _context.CartProducts.FirstOrDefault(p => p.Id == id && p.UserId == userid.Id);
+                if (cartitem == null)
+                {
+                    return null;
+                }
+                _context.CartProducts.Remove(cartitem);
+                await _context.SaveChangesAsync();
+                return cartitem;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while removing the product from the cart", ex);
+            }
+        }
+
+        public async Task<CartItems> UpdateCart(int id, CartDtos cart, Users userId)
+        {
+            try
+            {
+                var cartitem = _context.CartProducts.FirstOrDefault(p => p.Id == id && p.UserId == userId.Id);
+                if (cartitem == null)
+                {
+                    return null;
+                }
+                cartitem.ProductId = cart.ProductId;
+                cartitem.Quantity = cart.Quantity;
+                await _context.SaveChangesAsync();
+                return cartitem;
+            }
+            catch
+            {
+                throw new Exception("An error occurred while updating the cart item");
+            }
+            
+        }
     }
 }

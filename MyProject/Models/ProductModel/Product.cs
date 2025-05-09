@@ -18,15 +18,15 @@ namespace MyProject.Models.ProductModel
         [Url(ErrorMessage = "Please enter a valid URL")]
         public string Image { get; set; }
 
-        [Required(ErrorMessage = "New price is required")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "New price must be greater than 0")]
-        public decimal NewPrice { get; set; }
+      
+        public int NewPrice { get; set; }
 
-        [Range(0.00, double.MaxValue, ErrorMessage = "Old price must be 0 or more")]
-        public decimal OldPrice { get; set; }
+        
+        public int OldPrice { get; set; }
 
         [StringLength(1000, ErrorMessage = "Description can't exceed 1000 characters")]
         public string Description { get; set; }
+        public int  Quantity { get; set; }
 
         [Range(0, 5, ErrorMessage = "Rating must be between 0 and 5")]
         public double Rating { get; set; }

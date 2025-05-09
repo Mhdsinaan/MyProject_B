@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MyProject.Interfaces;
 using MyProject.Models.Cart;
 using MyProject.Models.CartModel;
+using System.Security.Claims;
 
 namespace MyProject.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
     public class CartController : ControllerBase
     {
         private readonly ICartproducts _cartService;
@@ -16,60 +19,61 @@ namespace MyProject.Controllers
             _cartService = cartService;
         }
 
+        // POST: api/cart/add
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
             var result = await _cartService.AddToCart(cart);
+            if (result == null)
+                return BadRequest("User or product not found.");
             return Ok(result);
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetCartItems(int userId)
+        // GET: api/cart
+        [HttpGet]
+        public async Task<IActionResult> GetCartItems()
         {
-            var items = await _cartService.GetCartItems(userId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var user = new Users { Id = int.Parse(userId) };
+            var items = await _cartService.GetCartItems(user);
             return Ok(items);
         }
 
+        // DELETE: api/cart/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveFromCart(int id)
         {
-            try
-            {
-                var removedItem = await _cartService.RemoveFromCart(id);
-                return Ok(removedItem);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var user = new Users { Id = int.Parse(userId) };
+            var removed = await _cartService.RemoveFromCart(id, user);
+
+            if (removed == null)
+                return NotFound("Cart item not found.");
+
+            return Ok(removed);
         }
 
-        [HttpPut("increment/{id}")]
-        public async Task<IActionResult> IncrementQuantity(int id, [FromBody] CartDtos cart, [FromQuery] int userId)
+        // PUT: api/cart/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDtos cart)
         {
-            try
-            {
-                var updatedItem = await _cartService.Increment(id, cart, userId);
-                return Ok(updatedItem);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(ex.Message);
-            }
-        }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
 
-        [HttpPut("decrement/{id}")]
-        public async Task<IActionResult> DecrementQuantity(int id, [FromQuery] int userId)
-        {
-            try
-            {
-                var updatedItem = await _cartService.Decrement(id, userId);
-                return Ok(updatedItem);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var user = new Users { Id = int.Parse(userId) };
+            var updated = await _cartService.UpdateCart(id, cart, user);
+
+            if (updated == null)
+                return NotFound("Cart item not found.");
+
+            return Ok(updated);
         }
     }
 }
