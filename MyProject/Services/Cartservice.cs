@@ -35,7 +35,7 @@ namespace MyProject.Services
                 {
                     return null;
                 }
-                var Existingitem = _context.products.FirstOrDefault(p => p.Id == cart.ProductId && p.Id == cart.ProductId);
+                var Existingitem = _context.products.FirstOrDefault(p => p.Id == userdata && p.Id== cart.ProductId);
                 if (Existingitem != null)
                 {
 
@@ -66,7 +66,7 @@ namespace MyProject.Services
         {
             try
             {
-                var cartitem = await _context.CartProducts.Include(p => p.Product).Where(p => p.UserId == userId.Id).ToListAsync();
+                var cartitem = await _context.CartProducts.Include(p => p.Product).Where(p => p.UserId== userId.Id).ToListAsync();
                 if (cartitem == null)
                 {
                     return null;

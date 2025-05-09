@@ -4,6 +4,7 @@ using MyProject.Models.CartModel;
 using MyProject.Models.ProductModel;
 using MyProject.Models.User;
 using MyProject.Models.UserModel;
+using MyProject.Models.WishlistModel;
 
 namespace MyProject.Mapping
 {
@@ -15,6 +16,7 @@ namespace MyProject.Mapping
             CreateMap<Users, RegisterDto>().ReverseMap();
             CreateMap <Product, ProductDto>().ReverseMap();
             CreateMap<CartItems,CartDtos>().ReverseMap();
+            CreateMap<Wishlist, WishlistDto>().ReverseMap();
         }
     }
 }

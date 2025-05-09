@@ -19,7 +19,7 @@ namespace MyProject.Controllers
             _cartService = cartService;
         }
 
-        // POST: api/cart/add
+       
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
@@ -29,7 +29,7 @@ namespace MyProject.Controllers
             return Ok(result);
         }
 
-        // GET: api/cart
+       
         [HttpGet]
         public async Task<IActionResult> GetCartItems()
         {
@@ -42,7 +42,7 @@ namespace MyProject.Controllers
             return Ok(items);
         }
 
-        // DELETE: api/cart/{id}
+       
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveFromCart(int id)
         {
@@ -59,7 +59,7 @@ namespace MyProject.Controllers
             return Ok(removed);
         }
 
-        // PUT: api/cart/{id}
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDtos cart)
         {
