@@ -92,6 +92,8 @@ app.UseHttpsRedirection();
 
 // ? Enable Authentication middleware before Authorization
 app.UseAuthentication();
+app.UseMiddleware<MyProject.Middleware.UserIdMiddlware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

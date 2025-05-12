@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using MyProject.Models.Cart;
 
 namespace MyProject.Models.ProductModel
 {
@@ -33,9 +34,11 @@ namespace MyProject.Models.ProductModel
 
         [Range(0, int.MaxValue, ErrorMessage = "Reviews must be a non-negative number")]
         public int Reviews { get; set; }
+        public ICollection<CartItems>? CartItems { get; set; }
 
 
 
-       
+
+
     }
 }

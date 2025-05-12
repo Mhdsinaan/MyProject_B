@@ -4,8 +4,8 @@ namespace MyProject.Models.User
 {
     public class RegisterDto
     {
-        
-        
+
+        [Required]
         public required string Username { get; set; }
         [Required]
 

@@ -17,6 +17,7 @@ namespace MyProject.Mapping
             CreateMap <Product, ProductDto>().ReverseMap();
             CreateMap<CartItems,CartDtos>().ReverseMap();
             CreateMap<Wishlist, WishlistDto>().ReverseMap();
+            CreateMap<CartItems,CartOUtDto>().ReverseMap();
         }
     }
 }
