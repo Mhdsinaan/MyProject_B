@@ -22,45 +22,91 @@ namespace MyProject.Services
 
         }
 
-        public Task<bool> AddToCart(CartDtos cart,int usreid)
+        public async Task<bool> AddToCart(CartDtos cart,int usreid)
         {
-            var userid =_context.users.FirstOrDefault(x => x.Id == usreid);
+            var userid = await _context.users.FirstOrDefaultAsync(x => x.Id == usreid);
             if (userid == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
+            var existingItem = await _context.CartProducts
+             .FirstOrDefaultAsync(x => x.UserId==usreid && x.ProductId == cart.ProductId);
+
+            if (existingItem != null)
+            {
+                return false;
+            }
+            var newCartitems = new CartItems
+            {
+                ProductId = cart.ProductId,
+                UserId = usreid,
+                Quantity = cart.Quantity,
+
+
+            };
+             _context.CartProducts.AddAsync(newCartitems);
+            await _context.SaveChangesAsync();
+            return true;
+
+
 
 
         }
 
-        public Task<IEnumerable<CartDtos>> GetCartItems(int userId)
+        
+
+        public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
         {
             try
             {
-                if (userId == null)
+                if (userId == 0)
                 {
                     throw new Exception("User not found");
                 }
-                var cartitems=_context.CartProducts.Where(p=>p.UserId == userId)
-                    .Include(p => p.Product)    
-                    .ToList();
+                var cartitems = await _context.CartProducts.Where(p => p.UserId == userId)
+                    .Include(p => p.Product)
+                    .ToListAsync();
                 if (cartitems == null)
                 {
                     throw new Exception("Cart items not found");
                 }
-                return Ok(cartitems);
-     
+                var result = _mapper.Map<IEnumerable<CartDtos>>(cartitems);
+                return result;
+
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
-        public Task<CartItems> incrementCartItems(int id, Product produ)
+        public async Task<CartItems> incrementCartItems(int id, Product produ)
         {
-            throw new NotImplementedException();
+            var increment= await _context.CartProducts.FirstOrDefaultAsync(p=>p.Id == id && p.ProductId==produ.Id);
+            if(increment == null)
+            {
+                throw new Exception("Cart item not found");
+            }   
+            increment.Quantity += 1;
+            _context.CartProducts.Update(increment);
+            await _context.SaveChangesAsync();
+            return increment;
+
         }
 
-        public Task<CartItems> RemoveFromCart(int id, Users userid)
+        public async Task<CartItems> RemoveFromCart(int id, Users userid)
         {
-            throw new NotImplementedException();
+
+            var cartitem= await _context.CartProducts.FindAsync(id==userid.Id);
+            if (cartitem == null)
+            {
+                throw new Exception("Cart item not found");
+            }
+            _context.CartProducts.Remove(cartitem);
+            await _context.SaveChangesAsync();
+            return cartitem;
+
         }
     }
 

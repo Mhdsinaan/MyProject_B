@@ -20,60 +20,60 @@ namespace MyProject.Controllers
         }
 
        
-        [HttpPost("add")]
+        [HttpPatch("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
-            var result = await _cartService.AddToCart(cart);
+            var result = await _cartService.AddToCart(cart,cart.ProductId);
             if (result == null)
                 return BadRequest("User or product not found.");
             return Ok(result);
         }
 
-       
+
         [HttpGet]
-        public async Task<IActionResult> GetCartItems()
+        public async Task<IActionResult> GetCartItems(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
                 return Unauthorized();
 
             var user = new Users { Id = int.Parse(userId) };
-            var items = await _cartService.GetCartItems(user);
+            var items = await _cartService.GetCartItems(id);
             return Ok(items);
         }
 
-       
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveFromCart(int id)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-                return Unauthorized();
 
-            var user = new Users { Id = int.Parse(userId) };
-            var removed = await _cartService.RemoveFromCart(id, user);
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> RemoveFromCart(int id)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //        return Unauthorized();
 
-            if (removed == null)
-                return NotFound("Cart item not found.");
+        //    var user = new Users { Id = int.Parse(userId) };
+        //    var removed = await _cartService.RemoveFromCart(id, user);
 
-            return Ok(removed);
-        }
+        //    if (removed == null)
+        //        return NotFound("Cart item not found.");
 
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDtos cart)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-                return Unauthorized();
+        //    return Ok(removed);
+        //}
 
-            var user = new Users { Id = int.Parse(userId) };
-            var updated = await _cartService.UpdateCart(id, cart, user);
 
-            if (updated == null)
-                return NotFound("Cart item not found.");
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDtos cart)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //        return Unauthorized();
 
-            return Ok(updated);
-        }
+        //    var user = new Users { Id = int.Parse(userId) };
+        //    var updated = await _cartService.upda(id, cart, user);
+
+        //    if (updated == null)
+        //        return NotFound("Cart item not found.");
+
+        //    return Ok(updated);
+        //}
     }
 }
