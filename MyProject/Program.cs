@@ -7,6 +7,7 @@ using MyProject.Interfaces;
 using MyProject.Services;
 using MyProject.Mapping;
 using Microsoft.OpenApi.Models;
+using MyProject.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,8 +93,7 @@ app.UseHttpsRedirection();
 
 // ? Enable Authentication middleware before Authorization
 app.UseAuthentication();
-app.UseMiddleware<MyProject.Middleware.UserIdMiddlware>();
-
+app.UseMiddleware<UserIdMiddlware>();
 app.UseAuthorization();
 
 app.MapControllers();

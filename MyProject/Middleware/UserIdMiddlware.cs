@@ -17,6 +17,7 @@ namespace MyProject.Middleware
             if (userId != null)
             {
                 _logger.LogInformation($"User ID: {userId}");
+                context.Items["UserId"] = userId;
             }
             else
             {

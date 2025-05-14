@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Context;
@@ -15,101 +16,127 @@ namespace MyProject.Services
         private readonly MyContext _context;
         private readonly IMapper _mapper;
 
-        public CartService(MyContext context,IMapper mapper)
+        public CartService(MyContext context, IMapper mapper)
         {
             _context = context;
-           _mapper = mapper;    
-
+            _mapper = mapper;
         }
-
-        public async Task<bool> AddToCart(CartDtos cart,int usreid)
-        {
-            var userid = await _context.users.FirstOrDefaultAsync(x => x.Id == usreid);
-            if (userid == null)
-            {
-                return false;
-            }
-            var existingItem = await _context.CartProducts
-             .FirstOrDefaultAsync(x => x.UserId==usreid && x.ProductId == cart.ProductId);
-
-            if (existingItem != null)
-            {
-                return false;
-            }
-            var newCartitems = new CartItems
-            {
-                ProductId = cart.ProductId,
-                UserId = usreid,
-                Quantity = cart.Quantity,
-
-
-            };
-             _context.CartProducts.AddAsync(newCartitems);
-            await _context.SaveChangesAsync();
-            return true;
-
-
-
-
-        }
-
-        
 
         public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
         {
+            var cartItems = await _context.CartProducts
+                .Include(c => c.Product)
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<CartDtos>>(cartItems);
+        }
+
+        public async Task<bool> AddToCart(CartDtos cart, int userId)
+        {
             try
             {
-                if (userId == 0)
+                var existingItem = await _context.CartProducts
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == cart.ProductId);
+
+                if (existingItem != null)
                 {
-                    throw new Exception("User not found");
+                    existingItem.Quantity += cart.Quantity;
                 }
-                var cartitems = await _context.CartProducts.Where(p => p.UserId == userId)
-                    .Include(p => p.Product)
-                    .ToListAsync();
-                if (cartitems == null)
+                else
                 {
-                    throw new Exception("Cart items not found");
+                    var cartItem = new CartItems
+                    {
+                        UserId = userId,
+                        ProductId = cart.ProductId,
+                        Quantity = cart.Quantity,
+
+                    };
+                    await _context.CartProducts.AddAsync(cartItem);
                 }
-                var result = _mapper.Map<IEnumerable<CartDtos>>(cartitems);
-                return result;
 
-
+                await _context.SaveChangesAsync();
+                return true;
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                return false;
             }
         }
 
-        public async Task<CartItems> incrementCartItems(int id, Product produ)
+        public async Task<CartItems?> RemoveFromCart(int productId, int userId)
         {
-            var increment= await _context.CartProducts.FirstOrDefaultAsync(p=>p.Id == id && p.ProductId==produ.Id);
-            if(increment == null)
+            try
             {
-                throw new Exception("Cart item not found");
-            }   
-            increment.Quantity += 1;
-            _context.CartProducts.Update(increment);
-            await _context.SaveChangesAsync();
-            return increment;
+                var cartItem = await _context.CartProducts
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
 
-        }
+                if (cartItem == null)
+                    return null;
 
-        public async Task<CartItems> RemoveFromCart(int id, Users userid)
-        {
-
-            var cartitem= await _context.CartProducts.FindAsync(id==userid.Id);
-            if (cartitem == null)
-            {
-                throw new Exception("Cart item not found");
+                _context.CartProducts.Remove(cartItem);
+                await _context.SaveChangesAsync();
+                return cartItem;
             }
-            _context.CartProducts.Remove(cartitem);
-            await _context.SaveChangesAsync();
-            return cartitem;
-
+            catch
+            {
+                return null;
+            }
         }
+
+
+        public async Task<CartItems> IncrementCartItems(int id, Product product)
+        {
+            var cartItem = await _context.CartProducts
+                .FirstOrDefaultAsync(c => c.Id == id && c.ProductId == product.Id);
+
+            if (cartItem == null)
+            {
+                cartItem = new CartItems
+                {
+                    ProductId = product.Id,
+                    UserId = product.Id,
+                    Quantity = 1,
+
+                };
+                await _context.CartProducts.AddAsync(cartItem);
+            }
+            else
+            {
+                cartItem.Quantity++;
+            }
+
+            await _context.SaveChangesAsync();
+            return cartItem;
+        }
+
+        public async Task<bool> DecreaseQuantity(int userId, int productId)
+        {
+            try
+            {
+                var cartItem = await _context.CartProducts
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
+
+                if (cartItem == null)
+                    return false;
+
+                if (cartItem.Quantity <= 1)
+                {
+                    _context.CartProducts.Remove(cartItem);
+                }
+                else
+                {
+                    cartItem.Quantity--;
+                }
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
-
-
 }
-       
