@@ -15,15 +15,16 @@ namespace MyProject.Controllers
         {
             _wishlistServices = wishlistServices;
         }
-        [Authorize]
+        
         [HttpGet("GetWishlist")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<IEnumerable<Wishlist>>> GetWishlist()
         {
-            var user= HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (user == null) {
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+            if (userId == null) {
                 return Unauthorized();
             }
-            int userID = int.Parse(user);
+            int userID = (userId);
             var items= await _wishlistServices.GetWishlist(userID);
             if (items == null) return null;
             return Ok(items);
@@ -31,31 +32,33 @@ namespace MyProject.Controllers
 
 
         }
-        [Authorize]
+        
         [HttpPost("AddToWishlist")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<string>> Addtowishlist(WishlistDto request)
         {
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId is null)
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+            if (userId == null)
             {
                 return Unauthorized();
             }
-            int use = int.Parse(userId);
-            var status = await _wishlistServices.AddToWishlist(request, use);
+            
+            var status = await _wishlistServices.AddToWishlist(request, userId);
             if (status is null) return BadRequest();
             return Ok(status);
         }
-        [Authorize]
+        
         [HttpDelete("RemoveWishlist")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<string>> RemoveFromWishlist(int id)
         {
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId is null)
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+            if (userId == null)
             {
                 return Unauthorized();
             }
-            int userIdguid = int.Parse(userId);
-            var status = await _wishlistServices.RemoveWishlist(id, userIdguid);
+           
+            var status = await _wishlistServices.RemoveWishlist(id, userId);
             if (status is null) return NotFound();
             return Ok(status);
         }

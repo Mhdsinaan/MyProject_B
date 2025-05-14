@@ -2,6 +2,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Context;
 using MyProject.Interfaces;
@@ -25,7 +26,7 @@ namespace MyProject.Services
         public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
         {
             var cartItems = await _context.CartProducts
-                .Include(c => c.Product)
+                .Include(c => c.ProductId)
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
 
@@ -52,6 +53,8 @@ namespace MyProject.Services
                         Quantity = cart.Quantity,
 
                     };
+
+                   
                     await _context.CartProducts.AddAsync(cartItem);
                 }
 
@@ -85,30 +88,27 @@ namespace MyProject.Services
         }
 
 
-        public async Task<CartItems> IncrementCartItems(int id, Product product)
+        public async Task<bool> IncreaseQuantity(int userId, int productId)
         {
-            var cartItem = await _context.CartProducts
-                .FirstOrDefaultAsync(c => c.Id == id && c.ProductId == product.Id);
-
-            if (cartItem == null)
+            try
             {
-                cartItem = new CartItems
-                {
-                    ProductId = product.Id,
-                    UserId = product.Id,
-                    Quantity = 1,
+                var cartItem = await _context.CartProducts
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
 
-                };
-                await _context.CartProducts.AddAsync(cartItem);
+                if (cartItem == null)
+                    return false;
+
+                cartItem.Quantity++; 
+
+                await _context.SaveChangesAsync();
+                return true;
             }
-            else
+            catch
             {
-                cartItem.Quantity++;
+                return false;
             }
-
-            await _context.SaveChangesAsync();
-            return cartItem;
         }
+
 
         public async Task<bool> DecreaseQuantity(int userId, int productId)
         {

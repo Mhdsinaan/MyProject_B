@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Interfaces;
 using MyProject.Models.ProductModel;
@@ -40,6 +41,7 @@ namespace MyProject.Controllers
             return Ok(user);
         }
         [HttpPost("AddProduct")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddProduct([FromBody] ProductDto request)
         {
             var result = await _productService.AddProduct(request);

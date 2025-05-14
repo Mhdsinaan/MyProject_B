@@ -12,7 +12,7 @@ namespace MyProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class CartController : ControllerBase
     {
         private readonly ICartproducts _cartService;
@@ -24,16 +24,21 @@ namespace MyProject.Controllers
 
 
         [HttpPost("add")]
+        
+
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
             if (userId == null)
+
                 return Unauthorized(new APiResponds<string>("401", "User not authorized", null));
 
-            var result = await _cartService.AddToCart(cart, int.Parse(userId));
+            var result = await _cartService.AddToCart(cart, userId);
             if (!result)
                 return BadRequest(new APiResponds<string>("400", "User or product not found", null));
-
+            
             return Ok(new APiResponds<string>("200", "Product added to cart", null));
         }
 
@@ -42,17 +47,19 @@ namespace MyProject.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCartItems()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
             if (userId == null)
                 return Unauthorized(new APiResponds<string>("401", "User not authorized", null));
 
-            var items = await _cartService.GetCartItems(int.Parse(userId));
+            var items = await _cartService.GetCartItems(userId);
             return Ok(items);
         }
 
 
 
         [HttpDelete("{productId}")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
             try
@@ -73,23 +80,34 @@ namespace MyProject.Controllers
                 return StatusCode(500, new APiResponds<string>("500", "Internal Server Error", ex.Message));
             }
         }
-        [HttpPost("increment/{cartItemId}")]
-        public async Task<IActionResult> IncrementCartItem(int cartItemId, [FromBody] Product product)
+        [HttpPost("increment/{productID}")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> IncrementCartItem(int productID)
         {
             try
             {
-                var result = await _cartService.IncrementCartItems(cartItemId, product);
-                if (result != null)
+                
+                int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
+                
+                var result = await _cartService.IncreaseQuantity(userId, productID);
+
+               
+                if (result)
                 {
-                    return Ok(new APiResponds<CartItems>("200", "Quantity incremented", result));
+                    return Ok(new APiResponds<CartItems>("200", "Quantity incremented", null));
                 }
+
+                
                 return BadRequest(new APiResponds<string>("400", "Item not found", null));
             }
             catch (Exception ex)
             {
+         
                 return StatusCode(500, new APiResponds<string>("500", "Internal Server Error", ex.Message));
             }
         }
+
         [HttpPost("decrease/{productId}")]
         public async Task<IActionResult> DecreaseCartItem(int productId)
         {
@@ -97,7 +115,7 @@ namespace MyProject.Controllers
             {
                 int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
 
-                // Now calling DecreaseQuantity with userId and productId
+                
                 var result = await _cartService.DecreaseQuantity(userId, productId);
 
                 if (result)
