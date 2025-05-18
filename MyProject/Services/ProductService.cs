@@ -30,7 +30,8 @@ namespace MyProject.Services
        
         public async Task<ProductDto> GetProductById(int id)
         {
-            var BYid=await _context.products.FirstOrDefaultAsync(p => p.Id == id);
+            var BYid = await _context.products.FirstOrDefaultAsync(p => p.Id == id);
+           
             if (BYid == null)
             {
                 return null;
@@ -57,5 +58,55 @@ namespace MyProject.Services
             return "Product added successfully";
         }
 
+        public async Task<string> DeleteProduct(int id)
+        {
+            var product = await _context.products.FirstOrDefaultAsync(p => p.Id == id);
+            if (product == null)
+            {
+                return "no data";
+
+            }
+            _context.products.Remove(product);
+            await _context.SaveChangesAsync();
+            return "sucess";
+        }
+
+        public async Task<ProductDto?> UpdateProduct(int id, ProductDto updatedProductDto)
+        {
+            var product = await _context.products.FirstOrDefaultAsync(p => p.Id == id);
+            if (product == null)
+            {
+                return null;
+            }
+
+            // Update the product fields
+            product.Name = updatedProductDto.Name;
+            product.NewPrice = updatedProductDto.NewPrice;
+            product.Category = updatedProductDto.Category;
+            product.Description = updatedProductDto.Description;
+            product.Image = updatedProductDto.Image;
+            product.Rating = updatedProductDto.Rating;
+            product.Reviews = updatedProductDto.Reviews;
+
+            // Save changes
+            _context.products.Update(product);
+            await _context.SaveChangesAsync();
+
+            // Return the updated DTO (including Id if needed)
+            return new ProductDto
+            {
+                 // Include this if ProductDto has Id
+                Name = product.Name,
+                NewPrice = product.NewPrice,
+                Category = product.Category,
+                Description = product.Description,
+                Image = product.Image,
+                Rating = product.Rating,
+                Reviews = product.Reviews
+            };
+        }
+
     }
+
 }
+

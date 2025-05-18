@@ -25,10 +25,7 @@ namespace MyProject.Services
 
         public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
         {
-            var cartItems = await _context.CartProducts
-                .Include(c => c.ProductId)
-                .Where(c => c.UserId == userId)
-                .ToListAsync();
+            var cartItems = await _context.CartProducts.Where(p => p.UserId == userId).ToListAsync();
 
             return _mapper.Map<IEnumerable<CartDtos>>(cartItems);
         }

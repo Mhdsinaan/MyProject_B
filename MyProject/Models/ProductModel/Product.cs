@@ -20,10 +20,10 @@ namespace MyProject.Models.ProductModel
         public string Image { get; set; }
 
       
-        public int NewPrice { get; set; }
+        public decimal NewPrice { get; set; }
 
         
-        public int OldPrice { get; set; }
+        public decimal OldPrice { get; set; }
 
         [StringLength(1000, ErrorMessage = "Description can't exceed 1000 characters")]
         public string Description { get; set; }

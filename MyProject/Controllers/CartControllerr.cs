@@ -35,7 +35,7 @@ namespace MyProject.Controllers
 
                 return Unauthorized(new APiResponds<string>("401", "User not authorized", null));
 
-            var result = await _cartService.AddToCart(cart, userId);
+            var result = await _cartService.AddToCart(cart,userId);
             if (!result)
                 return BadRequest(new APiResponds<string>("400", "User or product not found", null));
             
@@ -130,6 +130,7 @@ namespace MyProject.Controllers
                 return StatusCode(500, new APiResponds<string>("500", "Internal Server Error", ex.Message));
             }
         }
+
 
 
 

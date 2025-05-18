@@ -11,5 +11,7 @@ namespace MyProject.Interfaces
 
 
         Task<string> AddProduct(ProductDto request);
+        Task<string> DeleteProduct(int id);
+        Task<ProductDto> UpdateProduct(int id, ProductDto updatedProductDto);
     }
 }
