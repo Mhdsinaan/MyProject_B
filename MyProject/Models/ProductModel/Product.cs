@@ -36,10 +36,9 @@ namespace MyProject.Models.ProductModel
         public int Reviews { get; set; }
         public ICollection<CartItems>? CartItems { get; set; }
 
-
-
-
-
-
+        public static implicit operator Product(List<CartItems> v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

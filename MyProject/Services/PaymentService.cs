@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using MyProject.Context;
 using MyProject.Interfaces;
+using MyProject.Models.Cart;
 using MyProject.Models.ordersModel;
 using MyProject.Models.paymentModels;
+using MyProject.Models.ProductModel;
 
 public class PaymentService : IPaymentServices
 {
@@ -14,45 +16,49 @@ public class PaymentService : IPaymentServices
         _context = context;
     }
 
-    public async Task<PaymentCart> MakePaymentCart(PaymentCartDTo request, int userID)
+    public async Task<PaymentProduct> MakePaymentCart(PaymentCartDTo request, int userID)
     {
+
+
+
         try
         {
-            var cartItems = await _context.CartProducts
+
+            var prdcts = await _context.CartProducts
                 .Include(c => c.Product)
                 .Where(c => c.UserId == userID)
                 .ToListAsync();
 
-            if (!cartItems.Any()) return null;
+            if (!prdcts.Any())
+                throw new InvalidOperationException("Cart is empty. Cannot proceed with payment.");
 
-            var totalAmount = cartItems.Sum(c => c.Product.NewPrice * c.Quantity);
 
-            var payment = new PaymentCart
+            var totalAmount = prdcts.Sum(c => c.Product.NewPrice * c.Quantity);
+
+
+            var payment = new PaymentProduct
             {
+                PaymentDate = DateTime.UtcNow,
                 Amount = totalAmount,
                 UserId = userID,
-                PaymentDate = DateTime.UtcNow,
-                Product = cartItems,
-                AddressId = request.AddressId
+                AddressId = request.AddressId,
+                Product = prdcts
             };
 
             _context.PaymentProducts.Add(payment);
-            await _context.SaveChangesAsync(); // Save to get Payment ID
+            await _context.SaveChangesAsync();
 
-            List<ProductPurchase> products = new();
-            foreach (var cart in cartItems)
+
+            List<ProductPurchase> products = prdcts.Select(cart => new ProductPurchase
             {
-                var productPurchase = new ProductPurchase
-                {
-                    ProductId = cart.ProductId,
-                    Product = cart.Product,
-                    Quantity = cart.Quantity,
-                    UserId = cart.UserId,
-                    User = cart.User
-                };
-                products.Add(productPurchase);
-                _context.ProductPurchases.Add(productPurchase);
-            }
+                ProductId = cart.ProductId,
+                Quantity = cart.Quantity,
+                UserId = cart.UserId
+
+            }).ToList();
+
+            _context.ProductPurchases.AddRange(products);
+
 
             var order = new Order
             {
@@ -61,19 +67,24 @@ public class PaymentService : IPaymentServices
                 OrderDate = DateTime.UtcNow,
                 PaymentMode = "Cart",
                 PaymentId = payment.Id,
-                Quantity = cartItems.Sum(c => c.Quantity),
+                Quantity = prdcts.Sum(c => c.Quantity),
                 Products = products,
                 AddressId = request.AddressId
             };
 
             _context.Orders.Add(order);
-            _context.CartProducts.RemoveRange(cartItems);
+
+
+            _context.CartProducts.RemoveRange(prdcts);
+
 
             await _context.SaveChangesAsync();
+
             return payment;
         }
         catch (Exception ex)
         {
+
             throw new Exception("Error occurred while processing the payment", ex);
         }
     }
