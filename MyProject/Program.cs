@@ -19,6 +19,8 @@ builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartproducts, CartService>();
 builder.Services.AddScoped<IWishlistServices, WishlistServices>();
+builder.Services.AddScoped<IPaymentServices, PaymentService>();
+
 // Read JWT settings
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);

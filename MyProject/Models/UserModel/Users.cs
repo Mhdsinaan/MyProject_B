@@ -1,4 +1,5 @@
 ﻿
+using MyProject.Models.AddressModel;
 using MyProject.Models.Cart;
 using MyProject.Models.UserModel;
 public class Users
@@ -13,6 +14,8 @@ public class Users
     public bool IsActive { get; set; } = true;
     public string Role { get; set; } = "User";
     public ICollection<CartItems>? CartItems { get; set; }
+    public ICollection<Address>? Addresses { get; set; }
+
 
 
 
