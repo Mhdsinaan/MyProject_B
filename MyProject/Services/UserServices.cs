@@ -94,5 +94,39 @@ namespace MyProject.Services
             return Byid.UserName; 
            
         }
+
+        public async Task<string> BlockUser(int id)
+        {
+            try
+            {
+                var user = await  _context.users.FirstOrDefaultAsync(u => u.Role == "User" && u.Id == id);
+                if (user is null) return null;
+                if (!user.IsActive) return "User is already blocked";
+                user.IsActive = false;
+                await _context.SaveChangesAsync();
+                return "User is blocked";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error occured while blocking user");
+            }
+        }
+
+        public async Task<string> UnblockUser(int id)
+        {
+            try
+            {
+                var user = await  _context.users.FirstOrDefaultAsync(u => u.Role == "User" && u.Id == id);
+                if (user is null) return null;
+                if (user.IsActive) return "User is already unblocked";
+                user.IsActive = true;
+                await _context.SaveChangesAsync();
+                return "User is unblocked";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error occured while unblocking user");
+            }
+        }
     }
 }

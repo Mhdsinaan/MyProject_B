@@ -8,6 +8,8 @@ namespace MyProject.Interfaces
         Task<string> RegisterUser(RegisterDto request);
         Task<string> LoginUser(LoginDto request);
         Task<string> FindById(int id);
-       
+        public Task<string> BlockUser(int id);
+        public Task<string> UnblockUser(int id);
+
     }
 }

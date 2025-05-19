@@ -10,8 +10,8 @@ public class Users
     public string Email { get; set; }
 
     //latest//
-
     public bool IsActive { get; set; } = true;
+ 
     public string Role { get; set; } = "User";
     public ICollection<CartItems>? CartItems { get; set; }
     public ICollection<Address>? Addresses { get; set; }

@@ -5,6 +5,7 @@ using MyProject.CommenApi;
 using MyProject.Interfaces;
 using MyProject.Models.User;
 using MyProject.Models.UserModel;
+using MyProject.Services;
 
 namespace MyProject.Controllers
 {
@@ -46,7 +47,7 @@ namespace MyProject.Controllers
             }
             catch (Exception ex)
             {
-                return Unauthorized(new APiResponds<string>("401", "Login Failed",  ex.Message));
+                return Unauthorized(new APiResponds<string>("401", "Login Failed", ex.Message));
             }
         }
 
@@ -57,10 +58,35 @@ namespace MyProject.Controllers
             var result = await _userService.FindById(id);
             if (result == null)
             {
-                return NotFound(new APiResponds<string>("404", "User not found",  null));
+                return NotFound(new APiResponds<string>("404", "User not found", null));
             }
             return Ok(new APiResponds<object>("200", "User found", result));
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("BlockUser")]
+        public async Task<IActionResult> BlockUser(int id)
+        {
+            var result = await _userService.BlockUser(id);
+            if (result == null)
+            {
+                return NotFound(new APiResponds<string>("404", "User not found or cannot block", null));
+            }
+
+            return Ok(new APiResponds<string>("200", "User blocked successfully", result));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("UnblockUser")]
+        public async Task<IActionResult> UnblockUser(int id)
+        {
+            var result = await _userService.UnblockUser(id);
+            if (result == null)
+            {
+                return NotFound(new APiResponds<string>("404", "User not found or cannot unblock", null));
+            }
+
+            return Ok(new APiResponds<string>("200", "User unblocked successfully", result));
+        }
     }
 }
-
