@@ -20,10 +20,10 @@ namespace MyProject.Services
             _mapping = mapping;
         }
         [HttpGet("GetAll")]
-        public async Task<List<ProductDto>> GetAllProducts()
+        public async Task<List<Product>> GetAllProducts()
         {
             var allProducts = await _context.products.ToListAsync();
-            return _mapping.Map<List<ProductDto>>(allProducts);
+            return (allProducts);
 
         }
 
@@ -50,12 +50,23 @@ namespace MyProject.Services
         }
         public async Task<string> AddProduct(ProductDto request)
         {
-            var product = _mapping.Map<Product>(request); 
+            var product = _mapping.Map<Product>(request);
+            if (product == null)
+            {
+                return "product not found";
+            }
+            var existing = await _context.products.FirstOrDefaultAsync(p => p.Name == request.Name);
+            if (existing != null)
+            {
+                return "product already added";
+            }
+            
 
-            await _context.products.AddAsync(product);
+                await _context.products.AddAsync(product);
             await _context.SaveChangesAsync();
 
             return "Product added successfully";
+            
         }
 
         public async Task<string> DeleteProduct(int id)
@@ -79,23 +90,22 @@ namespace MyProject.Services
                 return null;
             }
 
-            // Update the product fields
             product.Name = updatedProductDto.Name;
             product.NewPrice = updatedProductDto.NewPrice;
             product.Category = updatedProductDto.Category;
             product.Description = updatedProductDto.Description;
             product.Image = updatedProductDto.Image;
-            product.Rating = updatedProductDto.Rating;
-            product.Reviews = updatedProductDto.Reviews;
+            //product.Rating = updatedProductDto.Rating;
+            //product.Reviews = updatedProductDto.Reviews;
 
-            // Save changes
+            
             _context.products.Update(product);
             await _context.SaveChangesAsync();
 
-            // Return the updated DTO (including Id if needed)
+           
             return new ProductDto
             {
-                 // Include this if ProductDto has Id
+                 
                 Name = product.Name,
                 NewPrice = product.NewPrice,
                 Category = product.Category,

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +11,11 @@ using MyProject.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext
+// ✅ Add DbContext
 builder.Services.AddDbContext<MyContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ✅ Register services
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartproducts, CartService>();
@@ -23,14 +24,16 @@ builder.Services.AddScoped<IPaymentServices, PaymentService>();
 builder.Services.AddScoped<IAddress, AddrssService>();
 builder.Services.AddScoped<AddrssService>();
 
-// Read JWT settings
+
+
+// ✅ Read JWT settings
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
-// ? Register AutoMapper
-
+// ✅ Register AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-// ? Register Authentication and JWT
+
+// ✅ Add Authentication with JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -49,6 +52,8 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
+
+// ✅ Swagger with JWT support
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new OpenApiInfo { Title = "MyAPI", Version = "v1" });
@@ -80,13 +85,24 @@ builder.Services.AddSwaggerGen(opt =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddHttpContextAccessor();
 
+// ✅ Add CORS Policy for React (PORT 5177)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
+// ✅ Enable Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -95,7 +111,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ? Enable Authentication middleware before Authorization
+// ✅ Enable CORS
+app.UseCors("ReactPolicy");
+
+// ✅ Enable Authentication and Authorization
 app.UseAuthentication();
 app.UseMiddleware<UserIdMiddlware>();
 app.UseAuthorization();

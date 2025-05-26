@@ -37,7 +37,7 @@ namespace MyProject.Controllers
 
             var result = await _cartService.AddToCart(cart,userId);
             if (!result)
-                return BadRequest(new APiResponds<string>("400", "User or product not found", null));
+                return BadRequest(new APiResponds<string>("400", " product not found", null));
             
             return Ok(new APiResponds<string>("200", "Product added to cart", null));
         }

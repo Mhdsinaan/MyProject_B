@@ -13,6 +13,7 @@ namespace MyProject.Mapping
         public MApping()
         {
             CreateMap<Users, LoginDto>().ReverseMap();
+            CreateMap<Users, LoginResponseDto>().ReverseMap();
             CreateMap<Users, RegisterDto>().ReverseMap();
             CreateMap <Product, ProductDto>().ReverseMap();
             CreateMap<CartItems,CartDtos>().ReverseMap();

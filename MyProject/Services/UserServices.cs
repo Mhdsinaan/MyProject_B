@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyProject.Context;
 using MyProject.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+
 using MyProject.Models.User;
-using MyProject.Models.User;
+
 using MyProject.Models.UserModel;
 namespace MyProject.Services
 
@@ -25,31 +25,37 @@ namespace MyProject.Services
         {
             try
             {
-                var reg = await _context.users.FirstOrDefaultAsync(p => p.Email == request.Email);
-                if(reg != null)
+               
+                var existingUser = await _context.users.FirstOrDefaultAsync(p => p.Email == request.Email);
+                if (existingUser != null)
                 {
-                    return "existing user";
+                    return "User already exists";
                 }
-                var user = new Users();
-                user.UserName = request.Username;
-                user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-                user.Email = request.Email;
-                 _context.users.Add(user);
+
+               
+                var user = new Users
+                {
+                    UserName = request.Username,
+                    Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                    Email = request.Email
+                };
+
+              
+                _context.users.Add(user);
                 await _context.SaveChangesAsync();
+
                 return "User Registered";
-
-
-
             }
             catch (Exception ex)
             {
-                throw new Exception("Error occured while fetching data", ex);
+               
+                throw new Exception("Error occurred while registering user", ex);
             }
-
         }
-        
 
-        public async Task<string> LoginUser(LoginDto request)
+
+
+        public async Task<LoginResponseDto> LoginUser(LoginDto request)
         {
             var logg = await _context.users.FirstOrDefaultAsync(p => p.Email == request.Email);
             if (logg == null)
@@ -58,7 +64,16 @@ namespace MyProject.Services
             }
             if (!BCrypt.Net.BCrypt.Verify(request.Password, logg.Password)) return null;
             var token = CreateToken(logg);
-            return token;
+
+
+            return new LoginResponseDto
+            {
+                Name=logg.UserName,
+                Email=logg.Email,
+                Role=logg.Role,
+                Token=token
+
+            };
             
         }
         private string CreateToken(Users user)
@@ -127,6 +142,18 @@ namespace MyProject.Services
             {
                 throw new Exception("Error occured while unblocking user");
             }
+        }
+
+        public async Task<List<Users>> AllUsers()
+        {
+            var usersData= await _context.users.ToListAsync();
+
+            if (usersData == null)
+            {
+                return null;
+            }
+            return usersData;
+
         }
     }
 }

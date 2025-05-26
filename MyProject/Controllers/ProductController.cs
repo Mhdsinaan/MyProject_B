@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyProject.CommenApi;
 using MyProject.Interfaces;
 using MyProject.Models.ProductModel;
 
@@ -33,16 +34,32 @@ namespace MyProject.Controllers
                 return NotFound("No Product found");
             return Ok(product);
         }
-
         [HttpPost("AddProduct")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddProduct([FromBody] ProductDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new APiResponds<string>("400", "Invalid product data", null));
+            }
+
             var result = await _productService.AddProduct(request);
-            if (result == null)
-                return BadRequest("Product not added");
-            return Ok(result);
+
+            switch (result)
+            {
+                case "product already added":
+                    return Conflict(new APiResponds<string>("409", "Product already exists", null));
+
+                case "Product not added":
+                    return BadRequest(new APiResponds<string>("400", "Product could not be added", null));
+
+                default:
+                    return Ok(new APiResponds<string>("200", "Product added successfully", result));
+            }
         }
+
+
+
 
         [HttpGet("ProductByCategory")]
         public async Task<IActionResult> GetByCategory(string category)

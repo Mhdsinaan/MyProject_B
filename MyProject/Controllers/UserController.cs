@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
+using AutoMapper.Configuration.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Extensions;
 using MyProject.CommenApi;
 using MyProject.Interfaces;
 using MyProject.Models.User;
@@ -23,33 +25,61 @@ namespace MyProject.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Registration([FromBody] RegisterDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new APiResponds<string>("400", "Invalid data", null));
+            }
             var reg = await _userService.RegisterUser(request);
             if (reg == null)
             {
                 return BadRequest(new APiResponds<string>("400", "Registration Failed", null));
             }
+            var existing = await _userService.RegisterUser(request);
+            if (existing == reg)
+            {
+                return StatusCode(500, new APiResponds<object>("407", "user already exist", false));
 
-            return Ok(new APiResponds<object>("200", "Registration Successful", reg));
+            }
+            else
+            {
+                return Ok(new APiResponds<object>("200", "Registration Successful", reg));
+
+            }
+
+
+
+
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
-        {
-            try
-            {
-                var user = await _userService.LoginUser(request);
-                if (user == null)
-                {
-                    return Unauthorized(new APiResponds<string>("401", "Invalid credentials", null));
-                }
+public async Task<IActionResult> Login([FromBody] LoginDto request)
+{
+    try
+    {
+        var user = await _userService.LoginUser(request); 
 
-                return Ok(new APiResponds<object>("200", "Login Successful", user));
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new APiResponds<string>("401", "Login Failed", ex.Message));
-            }
+        if (user == null)
+        {
+            return Unauthorized(new APiResponds<string>("401", "Invalid credentials", null));
         }
+
+
+                var response = new LoginResponseDto
+                {
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role,
+                    Token = user.Token,
+                };
+
+        return Ok(new APiResponds<LoginResponseDto>("200", "Login Successful", response));
+    }
+    catch (Exception ex)
+    {
+        return Unauthorized(new APiResponds<string>("401", "Login Failed", ex.Message));
+    }
+}
+
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
@@ -88,5 +118,21 @@ namespace MyProject.Controllers
 
             return Ok(new APiResponds<string>("200", "User unblocked successfully", result));
         }
+        [HttpGet("all-users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<List<Users>>> AllUsers()
+        {
+            var usersData = await _userService.AllUsers();
+
+            if (usersData == null)
+            {
+                return NotFound("No users found.");
+            }
+
+            return Ok(usersData);
+        }
+
+
     }
+
 }
