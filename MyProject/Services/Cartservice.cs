@@ -23,12 +23,30 @@ namespace MyProject.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
+        public async Task<IEnumerable<CartOUtDto>> GetCartItems(int userId)
         {
-            var cartItems = await _context.CartProducts.Where(p => p.UserId == userId).ToListAsync();
+            var cartItems = await _context.CartProducts
+                                          
+                                          .Where(p => p.UserId == userId)
+                                           .Include(p => p.product)
 
-            return _mapper.Map<IEnumerable<CartDtos>>(cartItems);
+
+                                          .ToListAsync();
+
+            var result = cartItems.Select(item => new CartOUtDto
+            {
+                // assuming these properties exist
+                productId=item.ProductId,
+                Name = item.product.Name,
+                Quantity = item.Quantity,
+                Price = (int)item.product.NewPrice,
+                Image = item.product.Image
+
+            });
+
+            return result;
         }
+
 
         public async Task<bool> AddToCart(CartDtos cart, int userId)
         {

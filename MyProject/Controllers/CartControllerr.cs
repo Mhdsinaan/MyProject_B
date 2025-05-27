@@ -24,7 +24,8 @@ namespace MyProject.Controllers
 
 
         [HttpPost("add")]
-        
+        [Authorize(Roles = "User")]
+
 
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
@@ -39,7 +40,7 @@ namespace MyProject.Controllers
             if (!result)
                 return BadRequest(new APiResponds<string>("400", " product not found", null));
             
-            return Ok(new APiResponds<string>("200", "Product added to cart", null));
+            return Ok(new APiResponds<string>("200", "Product added to cart","result"));
         }
 
 
