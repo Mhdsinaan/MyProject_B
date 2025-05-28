@@ -100,6 +100,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+});
+
 var app = builder.Build();
 
 // ✅ Enable Swagger

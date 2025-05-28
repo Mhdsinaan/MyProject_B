@@ -26,19 +26,25 @@ namespace MyProject.Services
         public async Task<IEnumerable<CartOUtDto>> GetCartItems(int userId)
         {
             var cartItems = await _context.CartProducts
-                .Include(c => c.Product)
-                .Where(c => c.UserId == userId)
-                .Select(c => new CartOUtDto
-                {
-                    ProductId=c.ProductId,
-                    Name = c.Product.Name,
-                    Image = c.Product.Image,
-                    Price = (int)c.Product.NewPrice,
-                    Quantity = c.Quantity
-                })
-                .ToListAsync();
+                                          
+                                          .Where(p => p.UserId == userId)
+                                           .Include(p => p.product)
 
-            return cartItems;
+
+                                          .ToListAsync();
+
+            var result = cartItems.Select(item => new CartOUtDto
+            {
+                // assuming these properties exist
+                productId=item.ProductId,
+                Name = item.product.Name,
+                Quantity = item.Quantity,
+                Price = (int)item.product.NewPrice,
+                Image = item.product.Image
+
+            });
+
+            return result;
         }
 
 
