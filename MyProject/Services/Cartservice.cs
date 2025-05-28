@@ -28,7 +28,7 @@ namespace MyProject.Services
             var cartItems = await _context.CartProducts
                                           
                                           .Where(p => p.UserId == userId)
-                                           .Include(p => p.product)
+                                           .Include(p => p.Product)
 
 
                                           .ToListAsync();
@@ -37,10 +37,10 @@ namespace MyProject.Services
             {
                 // assuming these properties exist
                 productId=item.ProductId,
-                Name = item.product.Name,
+                Name = item.Product.Name,
                 Quantity = item.Quantity,
-                Price = (int)item.product.NewPrice,
-                Image = item.product.Image
+                Price = (int)item.Product.NewPrice,
+                Image = item.Product.Image
 
             });
 
@@ -115,7 +115,7 @@ namespace MyProject.Services
                     return false;
 
                 cartItem.Quantity++;
-                cartItem = cartItem.Quantity * cartItem.Product.NewPrice; // update total price
+                //cartItem = cartItem.Quantity * cartItem.product.NewPrice; // update total price
 
                 await _context.SaveChangesAsync();
                 return true;

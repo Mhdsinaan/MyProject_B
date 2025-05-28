@@ -25,7 +25,7 @@ public class PaymentService : IPaymentServices
         {
 
             var prdcts = await _context.CartProducts
-                .Include(c => c.product)
+                .Include(c => c.Product)
                 .Where(c => c.UserId == userID)
                 .ToListAsync();
 
@@ -33,7 +33,7 @@ public class PaymentService : IPaymentServices
                 throw new InvalidOperationException("Cart is empty. Cannot proceed with payment.");
 
 
-            var totalAmount = prdcts.Sum(c => c.product.NewPrice * c.Quantity);
+            var totalAmount = prdcts.Sum(c => c.Product.NewPrice * c.Quantity);
 
 
             var payment = new PaymentProduct
