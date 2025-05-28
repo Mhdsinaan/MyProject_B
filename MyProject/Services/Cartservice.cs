@@ -23,12 +23,24 @@ namespace MyProject.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CartDtos>> GetCartItems(int userId)
+        public async Task<IEnumerable<CartOUtDto>> GetCartItems(int userId)
         {
-            var cartItems = await _context.CartProducts.Where(p => p.UserId == userId).ToListAsync();
+            var cartItems = await _context.CartProducts
+                .Include(c => c.Product)
+                .Where(c => c.UserId == userId)
+                .Select(c => new CartOUtDto
+                {
+                    ProductId=c.ProductId,
+                    Name = c.Product.Name,
+                    Image = c.Product.Image,
+                    Price = (int)c.Product.NewPrice,
+                    Quantity = c.Quantity
+                })
+                .ToListAsync();
 
-            return _mapper.Map<IEnumerable<CartDtos>>(cartItems);
+            return cartItems;
         }
+
 
         public async Task<bool> AddToCart(CartDtos cart, int userId)
         {
@@ -90,12 +102,14 @@ namespace MyProject.Services
             try
             {
                 var cartItem = await _context.CartProducts
+                    .Include(c => c.Product) // include product to access unit price
                     .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
 
                 if (cartItem == null)
                     return false;
 
-                cartItem.Quantity++; 
+                cartItem.Quantity++;
+                cartItem = cartItem.Quantity * cartItem.Product.NewPrice; // update total price
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -105,6 +119,7 @@ namespace MyProject.Services
                 return false;
             }
         }
+
 
 
         public async Task<bool> DecreaseQuantity(int userId, int productId)

@@ -1,4 +1,6 @@
-﻿namespace MyProject.Models.CartModel
+﻿using MyProject.Models.ProductModel;
+
+namespace MyProject.Models.CartModel
 {
     public class CartOUtDto
     {
@@ -6,5 +8,8 @@
         public string Image { get; set; }
         public int Price { get; set; }
         public int Quantity { get; set; }
+        public int ProductId { get; set; }
+
+        //public Product product { get; set; }
     }
 }

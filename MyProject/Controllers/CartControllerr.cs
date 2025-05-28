@@ -6,6 +6,7 @@ using MyProject.Models.Cart;
 using MyProject.Models.CartModel;
 using MyProject.Models.ProductModel;
 using MyProject.Services;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace MyProject.Controllers
@@ -24,7 +25,8 @@ namespace MyProject.Controllers
 
 
         [HttpPost("add")]
-        
+        [Authorize(Roles = "User")]
+
 
         public async Task<IActionResult> AddToCart([FromBody] CartDtos cart)
         {
@@ -36,15 +38,19 @@ namespace MyProject.Controllers
                 return Unauthorized(new APiResponds<string>("401", "User not authorized", null));
 
             var result = await _cartService.AddToCart(cart,userId);
-            if (!result)
+
+            if (result == null)
+            {
                 return BadRequest(new APiResponds<string>("400", " product not found", null));
+            }
             
-            return Ok(new APiResponds<string>("200", "Product added to cart", null));
+            return Ok(new APiResponds<CartOUtDto> ("200", "Product added to cart",null ));
         }
+        
 
 
-
-        [HttpGet]
+        [HttpGet("getAll")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetCartItems()
         {
             int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
