@@ -11,6 +11,6 @@ namespace MyProject.Models.CartModel
         public int Quantity { get; set; }
        
 
-        //public Product product { get; set; }
+       
     }
 }

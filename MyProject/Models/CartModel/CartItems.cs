@@ -20,7 +20,7 @@ namespace MyProject.Models.Cart
        
 
             public Users? User { get; set; }
-            public Product? Product { get; set; }
+            public Product  Product { get; set; }
         //public Product product { get; set; }
 
 
