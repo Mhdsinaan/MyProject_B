@@ -1,4 +1,5 @@
 ﻿using MyProject.Models.paymentModels;
+using MyProject.Models.ProductModel;
 
 namespace MyProject.Models.ordersModel
 {
@@ -13,5 +14,8 @@ namespace MyProject.Models.ordersModel
         public int AddressId { get; set; }
         public int UserId { get; set; }
         public List<ProductPurchase>? Products { get; set; }
+       
+        public Product? product { get; set; }
+        public Users? User { get; set; }
     }
 }

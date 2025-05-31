@@ -94,7 +94,7 @@ public async Task<IActionResult> Login([FromBody] LoginDto request)
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("BlockUser")]
+        [HttpPut("BlockUser/{id}")]
         public async Task<IActionResult> BlockUser(int id)
         {
             var result = await _userService.BlockUser(id);
@@ -107,7 +107,8 @@ public async Task<IActionResult> Login([FromBody] LoginDto request)
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("UnblockUser")]
+
+        [HttpPut("UnblockUser/{id}")]
         public async Task<IActionResult> UnblockUser(int id)
         {
             var result = await _userService.UnblockUser(id);

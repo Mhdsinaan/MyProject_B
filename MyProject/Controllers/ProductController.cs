@@ -26,7 +26,7 @@ namespace MyProject.Controllers
             return Ok(allProducts);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> ByID(int id)
         {
             var product = await _productService.GetProductById(id);

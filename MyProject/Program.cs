@@ -23,6 +23,8 @@ builder.Services.AddScoped<IWishlistServices, WishlistServices>();
 builder.Services.AddScoped<IPaymentServices, PaymentService>();
 builder.Services.AddScoped<IAddress, AddrssService>();
 builder.Services.AddScoped<AddrssService>();
+builder.Services.AddScoped<IOders, orderService>();
+
 
 
 

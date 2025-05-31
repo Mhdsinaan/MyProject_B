@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyProject.CommenApi;
 using MyProject.Interfaces;
 using MyProject.Models.WishlistModel;
+using MyProject.Services;
 
 namespace MyProject.Controllers
 {
@@ -15,24 +17,32 @@ namespace MyProject.Controllers
         {
             _wishlistServices = wishlistServices;
         }
-        
+
         [HttpGet("GetWishlist")]
         [Authorize(Roles = "User")]
-        public async Task<ActionResult<IEnumerable<Wishlist>>> GetWishlist()
+        public async Task<ActionResult<APiResponds<IEnumerable<WishListResDTO>>>> GetWishlist()
         {
             int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
-            if (userId == null) {
-                return Unauthorized();
+            if (userId == null)
+            {
+                return Unauthorized(new APiResponds<string>("401", "Unauthorized: User not authenticated", null));
+
             }
             int userID = (userId);
-            var items= await _wishlistServices.GetWishlist(userID);
-            if (items == null) return null;
-            return Ok(items);
+            var items = await _wishlistServices.GetWishlist(userID);
+            if (items == null)
+            {
+                return NotFound(new APiResponds<string>("404", "No wishlist items found.", null));
+
+            }
+
+            return Ok(new APiResponds<IEnumerable<WishListResDTO>>("200", "Wishlist retrieved successfully.", items));
+
 
 
 
         }
-        
+
         [HttpPost("AddToWishlist")]
         [Authorize(Roles = "User")]
         public async Task<ActionResult<string>> Addtowishlist(WishlistDto request)
@@ -40,30 +50,42 @@ namespace MyProject.Controllers
             int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
             if (userId == null)
             {
-                return Unauthorized();
+                return Unauthorized(new APiResponds<string>("401", "Unauthorized: User not authenticated", null));
             }
-            
+
             var status = await _wishlistServices.AddToWishlist(request, userId);
-            if (status is null) return BadRequest();
-            return Ok(status);
-        }
-        
-        [HttpDelete("RemoveWishlist")]
-        [Authorize(Roles = "User")]
-        public async Task<ActionResult<string>> RemoveFromWishlist(int id)
-        {
-            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
-            if (userId == null)
+
+            if (status is null)
             {
-                return Unauthorized();
+                return BadRequest(new APiResponds<string>("400", "Failed to add item to wishlist", null));
             }
-           
-            var status = await _wishlistServices.RemoveWishlist(id, userId);
-            if (status is null) return NotFound();
-            return Ok(status);
+
+            return Ok(new APiResponds<Wishlist>("200", "Item added to wishlist successfully", null));
+
+
+
         }
 
+        [HttpDelete("RemoveWishlist/{id}")]
+        [Authorize(Roles = "User")]
+        public async Task<ActionResult<APiResponds<string>>> RemoveFromWishlist(int id)
+        {
+            if (!HttpContext.Items.ContainsKey("UserId"))
+            {
+                return Unauthorized(new APiResponds<string>("401", "Unauthorized: User not authenticated", null));
+            }
 
+            int userId = Convert.ToInt32(HttpContext.Items["UserId"]);
+
+            var result = await _wishlistServices.RemoveWishlist(id, userId);
+
+            if (result == null)
+            {
+                return NotFound(new APiResponds<string>("404", "Wishlist item not found", null));
+            }
+
+            return Ok(new APiResponds<WishListResDTO>("200", "Item removed from wishlist successfully", null));
+        }
 
     }
 }

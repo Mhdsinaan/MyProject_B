@@ -14,23 +14,21 @@ namespace MyProject.Services
         {
             _context = context;
         }
-        public async Task<string> AddToWishlist(WishlistDto wishlist, int userId)
+        public async Task<IEnumerable<WishlistDto>> AddToWishlist(WishlistDto wishlist, int userId)
         {
             try
             {
-
                 var product = await _context.products.FindAsync(wishlist.ProductId);
-                if (product == null) return "Product not found";
-
+                if (product == null) return null; // or throw exception
 
                 bool alreadyExists = await _context.Wishlists
                     .AnyAsync(p => p.ProductId == wishlist.ProductId && p.UserId == userId);
 
                 if (alreadyExists)
                 {
-                    return "Product already exists in wishlist";
+                    // Return the current wishlist or throw exception based on your design
+                    return await GetWishlistByUserId(userId);
                 }
-
 
                 var newWishlist = new Wishlist
                 {
@@ -41,45 +39,69 @@ namespace MyProject.Services
                 await _context.Wishlists.AddAsync(newWishlist);
                 await _context.SaveChangesAsync();
 
-                return "Product added to wishlist";
+                // Return updated wishlist
+                return await GetWishlistByUserId(userId);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return "An error occurred while adding to wishlist: " + ex.Message;
+                // Handle error, maybe return empty list or null
+                return null;
             }
+        }
+
+        private async Task<IEnumerable<WishlistDto>> GetWishlistByUserId(int userId)
+        {
+            return await _context.Wishlists
+                .Where(w => w.UserId == userId)
+                .Select(w => new WishlistDto
+                {
+                    ProductId = w.ProductId,
+                    // Map other properties as needed
+                }).ToListAsync();
         }
 
 
 
 
-        public async Task<IEnumerable<Wishlist>> GetWishlist(int userId)
+        public async Task<IEnumerable<WishListResDTO>> GetWishlist(int userId)
         {
             try
             {
-                var items = await _context.Wishlists.Include(p => p.Product)
-                    .Where(p => p.UserId == userId)
+                var items = await _context.Wishlists
+                    .Include(w => w.Product)
+                    .Where(w => w.UserId == userId)
                     .ToListAsync();
-                if (items == null)
-                {
-                    throw new Exception("No items found in wishlist");
-                }
-                return items;
 
+                if (items == null || !items.Any())
+                {
+                    return new List<WishListResDTO>(); 
+                }
+
+                var wishlistDto = items.Select(w => new WishListResDTO
+                {
+                    ProductId = w.ProductId,
+                    Name = w.Product?.Name,
+                    Description = w.Product?.Description,
+                    Price = w.Product?.NewPrice ?? 0,
+                    Category = w.Product?.Category,
+                    Image = w.Product?.Image
+                });
+
+                return wishlistDto;
             }
             catch (Exception ex)
             {
                 throw new Exception("An error occurred while retrieving wishlist: " + ex.Message);
             }
-
-
         }
 
-        public async Task<string> RemoveWishlist(int id, int userId)
+
+        public async Task<string> RemoveWishlist(int productid, int userId)
         {
             try
             {
                 var wishlist = await _context.Wishlists
-                    .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+                    .FirstOrDefaultAsync(p => p.ProductId == productid && p.UserId == userId);
                 if (wishlist == null) return null;
                 _context.Wishlists.Remove(wishlist);
                 await _context.SaveChangesAsync();
@@ -90,5 +112,7 @@ namespace MyProject.Services
                 return "An error occurred while removing from wishlist: " + ex.Message;
             }
         }
+
+
     }
 }
